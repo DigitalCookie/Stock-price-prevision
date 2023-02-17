@@ -8,12 +8,8 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential, load_model
 from keras.layers import LSTM, Dense, Dropout
 
-'''payload=pd.read_html('https://en.wikipedia.org/wiki/List_of_cryptocurrencies')
-df_wiki = payload[0]
-Tickers = df_wiki.loc[(df_wiki['Currency'] == 'Bitcoin')]
-ticker_list = Tickers.values.tolist()
-for Ticker in ticker_list:'''
-df = yf.download('^FCHI', start='2012-01-01', end='2022-01-01')
+#you can change de the name of the ticker according to which stock you wanna work your LSTM  on and the period you're interested in
+df = yf.download('^FCHI', start='2012-01-01', end='2022-01-01') 
 
 df = df['Adj Close'].values
 
@@ -38,11 +34,11 @@ def create_dataset(df):
 
     return x,y
 
-
+#create the training and test data sets. 
 x_train, y_train = create_dataset(dataset_train)
 x_test, y_test = create_dataset(dataset_test)
 
-
+#training and saving the model
 
 model = Sequential()
 model.add(LSTM(units=96, return_sequences=True, input_shape=(x_train.shape[1],1 )))
@@ -59,6 +55,7 @@ model.compile(loss='mean_squared_error', optimizer='adam')
 model.fit(x_train, y_train, epochs=50, batch_size=32)
 model.save('stock_prediction')
 
+#load the model
 model = load_model('stock_prediction')
 
 predictions = model.predict(x_test)
@@ -66,7 +63,7 @@ predictions = scaler.inverse_transform(predictions)
 y_test_scaled = scaler.inverse_transform(y_test.reshape(-1, 1))
 predictions2=np.mean(predictions,axis=1)
 
-
+#Plot the fig with the real prices  and the predicted ones. 
 fig,ax=plt.subplots(figsize=(18,10))
 plt.plot(y_test_scaled, color='blue', label='Original price')
 plt.plot(predictions2, color='green', label='Predicted price')
